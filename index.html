@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>16期 文字ガチャ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --copper:#cd7f32; --silver:#e5e4e2; --r-color:#999999; --gold:#ffd700; --platinum:#e5e4e2; --black:#1c1c1e;
+  --ink:#1c1c1e; --gray:#F2F2F2; --gray2:#E5E5E5;
+  --pop:cubic-bezier(0.34,1.56,0.64,1);
+  --settle:cubic-bezier(0.05,0.7,0.1,1);
+  --theme-blue:#007aff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overscroll-behavior:none;}
+body{
+  font-family:'Zen Maru Gothic',ui-sans-serif,system-ui,-apple-system,'Hiragino Maru Gothic ProN',sans-serif;
+  background:#fff;color:var(--ink);
+  display:flex;justify-content:center;
+}
+#app{width:100%;max-width:430px;height:100dvh;display:flex;flex-direction:column;position:relative;background:#fff;overflow:hidden;}
+/* ===== header ===== */
+header{flex:none;padding:12px 16px 10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--gray2);}
+h1{font-size:22px;font-weight:900;letter-spacing:.02em;line-height:1;}
+h1 small{display:block;font-size:10px;font-weight:700;color:#8a8a8e;letter-spacing:.15em;margin-bottom:3px;}
+.rainbow-bar{height:4px;border-radius:2px;background:var(--theme-blue);margin-top:4px;}
+.progress-wrap{margin-left:auto;text-align:right;}
+.progress-num{font-size:15px;font-weight:900;}
+.progress-num em{font-style:normal;font-size:11px;color:#8a8a8e;font-weight:700;}
+.progress-bar{width:110px;height:8px;background:var(--gray);border-radius:4px;margin-top:4px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:var(--theme-blue);border-radius:4px;transition:width .6s var(--pop);}
+/* ===== main pages ===== */
+main{flex:1;position:relative;overflow:hidden;}
+.page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;}
+.page.active{display:block;}
+/* ===== gacha machine ===== */
+#page-gacha{display:none;flex-direction:column;}
+#page-gacha.active{display:flex;}
+.machine-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;padding:12px 0 4px;}
+.machine{position:relative;width:230px;}
+.dome{
+  width:190px;height:170px;margin:0 auto;position:relative;
+  background:linear-gradient(160deg,rgba(192,192,192,.1),rgba(255,215,0,.1));
+  border:4px solid var(--ink);border-radius:95px 95px 22px 22px;
+  overflow:hidden;
+}
+.dome::after{content:'';position:absolute;top:14px;left:22px;width:34px;height:56px;background:rgba(255,255,255,.75);border-radius:20px;transform:rotate(18deg);}
+.cap{position:absolute;width:44px;height:44px;border-radius:50%;border:3px solid rgba(0,0,0,.18);animation:bob 3s ease-in-out infinite;}
+.cap::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(to bottom,transparent 49%,rgba(255,255,255,.92) 51%);}
+.cap:nth-child(1){left:14px;bottom:10px;background:var(--copper);animation-delay:0s;}
+.cap:nth-child(2){left:60px;bottom:6px;background:#c0c0c0;animation-delay:.4s;}
+.cap:nth-child(3){left:108px;bottom:12px;background:var(--gold);animation-delay:.8s;}
+.cap:nth-child(4){left:34px;bottom:46px;background:var(--platinum);animation-delay:1.2s;}
+.cap:nth-child(5){left:84px;bottom:44px;background:var(--copper);animation-delay:1.6s;}
+.cap:nth-child(6){left:126px;bottom:52px;background:#c0c0c0;animation-delay:2s;}
+.cap:nth-child(7){left:58px;bottom:82px;background:var(--gold);animation-delay:2.4s;width:38px;height:38px;}
+.cap:nth-child(8){left:100px;bottom:86px;background:var(--platinum);animation-delay:.2s;width:38px;height:38px;}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-7px) rotate(9deg)}}
+.mbody{
+  width:150px;height:96px;margin:-6px auto 0;background:var(--ink);border-radius:16px 16px 20px 20px;
+  display:flex;flex-direction:column;align-items:center;padding-top:14px;position:relative;z-index:2;
+}
+.knob{width:56px;height:56px;border-radius:50%;background:conic-gradient(from 200deg,#fff,#d9d9d9,#fff);border:4px solid #3a3a3c;box-shadow:inset 0 0 0 3px #fff;position:relative;}
+.knob::after{content:'';position:absolute;left:50%;top:6px;width:6px;height:18px;background:var(--gold);border-radius:3px;transform:translateX(-50%);}
+.mslot{margin-top:12px;width:70px;height:16px;background:#000;border-radius:8px;border:2px solid #3a3a3c;}
+.odds-link{margin-top:8px;font-size:12px;font-weight:700;color:#8a8a8e;text-decoration:underline;text-underline-offset:3px;background:none;border:none;font-family:inherit;cursor:pointer;}
+/* ===== pull status & buttons ===== */
+.limit-info{text-align:center;font-size:13px;font-weight:700;color:#8a8a8e;margin-bottom:8px;}
+.limit-info span{color:var(--copper);font-weight:900;}
+.pull-zone{flex:none;padding:6px 18px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;}
+.pull-btn{
+  width:100%;border:none;cursor:pointer;font-family:inherit;color:#fff;border-radius:999px;
+  padding:14px 6px 12px;font-weight:900;position:relative;
+  box-shadow:0 4px 0 rgba(0,0,0,.22);
+  transition:transform .15s var(--pop),box-shadow .15s;
+  background:linear-gradient(135deg,var(--gold),var(--platinum));
+  color:var(--ink);
+  text-align:center;
+}
+.pull-btn:active{transform:translateY(3px) scale(.98);box-shadow:0 1px 0 rgba(0,0,0,.22);}
+.pull-btn .big{font-size:19px;display:block;letter-spacing:.03em;}
+.pull-btn .small{font-size:10px;display:block;opacity:.8;margin-top:2px;letter-spacing:.1em;}
+.pull-btn:disabled{opacity:.45;pointer-events:none;}
+/* ===== bottom nav ===== */
+nav{flex:none;display:flex;border-top:1px solid var(--gray2);background:#fff;padding-bottom:env(safe-area-inset-bottom);}
+nav button{
+  flex:1;background:none;border:none;font-family:inherit;cursor:pointer;
+  padding:10px 0 9px;font-size:12px;font-weight:900;color:#8a8a8e;letter-spacing:.06em;
+  border-top:3px solid transparent;margin-top:-1px;
+}
+nav button.on{color:var(--ink);border-top-color:#888;}
+nav button .ico{display:block;font-size:19px;margin-bottom:2px;}
+/* ===== zukan ===== */
+#page-zukan{padding:14px 14px 90px;}
+.zk-summary{margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;}
+.zk-total{font-size:26px;font-weight:900;}
+.zk-total em{font-style:normal;font-size:13px;color:#8a8a8e;font-weight:700;}
+.zk-pulls-right{font-size:13px;font-weight:700;color:#8a8a8e;text-align:right;padding-bottom:2px;}
+.zk-bar{height:12px;background:var(--gray);border-radius:6px;margin-top:8px;overflow:hidden;}
+.zk-fill{height:100%;width:0%;background:var(--theme-blue);border-radius:6px;transition:width .6s var(--pop);}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{
+  flex:none;border:2px solid var(--gray2);background:#fff;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:12px;font-weight:900;padding:6px 13px;color:var(--ink);
+  transition:transform .15s var(--pop);
+}
+.chip:active{transform:scale(.93);}
+.chip.on{color:#fff;border-color:transparent;}
+.chip.on[data-r="all"]{background:var(--ink);}
+.chip.on[data-r="C"]{background:var(--copper);color:#fff;}
+.chip.on[data-r="R"]{background:var(--r-color);color:#fff;}
+.chip.on[data-r="SR"]{background:var(--gold);color:var(--ink);box-shadow:0 0 8px rgba(255,215,0,.6);}
+.chip.on[data-r="SSR"]{background:var(--platinum);color:#555;border:1px solid #ccc;box-shadow:0 0 10px rgba(229,228,226,.9);}
+.chip.on[data-r="Sec"]{background:linear-gradient(135deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#8b00ff);color:#fff;box-shadow:0 0 12px rgba(255,215,0,.9);}
+.zk-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.tile{
+  aspect-ratio:1;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:21px;font-weight:900;position:relative;user-select:none;
+  border:2px solid;transition:transform .15s var(--pop);cursor:pointer;
+}
+.tile:active{transform:scale(.9);}
+.tile.got{background:#fff;}
+.tile.miss{background:var(--gray);border-color:transparent;color:#c7c7cc;font-size:17px;cursor:default;}
+.tile .cnt{
+  position:absolute;right:-4px;top:-6px;background:var(--ink);color:#fff;
+  font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;letter-spacing:0;
+}
+.tile.r-C{border-color:var(--copper);color:var(--copper);}
+.tile.r-R{border-color:var(--r-color);color:var(--r-color);}
+.tile.r-SR{border-color:var(--gold);color:#d4af37;box-shadow:0 0 8px rgba(255,215,0,.4);}
+.tile.r-SSR{border-color:var(--platinum);color:#C5C5C5;background:#fff;box-shadow:0 0 10px rgba(229,228,226,.8);}
+.tile.r-Sec{border-color:#ff00ea;color:#1c1c1e;background:linear-gradient(135deg,rgba(255,0,0,0.2),rgba(0,255,255,0.2),rgba(255,0,255,0.2));box-shadow:0 0 16px rgba(255,0,223,0.8);animation: rainbowtile 3s linear infinite;}
+@keyframes rainbowtile{
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+.complete-banner{
+  display:none;margin:0 0 14px;padding:14px;border-radius:14px;color:#fff;font-weight:900;text-align:center;
+  background:var(--theme-blue);font-size:15px;
+}
+.complete-banner.show{display:block;}
+/* settings */
+.zk-settings{margin-top:26px;display:flex;flex-direction:column;gap:10px;}
+.danger{background:#fff;border:2px solid var(--copper);color:var(--copper);border-radius:14px;padding:13px;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;}
+/* ===== result overlay ===== */
+#overlay{
+  position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  background:rgba(28,28,30,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+#overlay.show{display:flex;}
+.ov-inner{width:100%;max-width:400px;max-height:100dvh;overflow-y:auto;padding:24px 20px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;position:relative;}
+.skip-btn{
+  position:absolute;top:16px;right:20px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);
+  color:#fff;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit;
+  transition:background .2s;
+}
+.skip-btn:active{background:rgba(255,255,255,0.4);}
+/* 10x grid (5 columns x 2 rows) */
+.ten-title{color:#fff;font-size:17px;font-weight:900;letter-spacing:.1em;margin-bottom:14px;text-align:center;opacity:0;transition:opacity 0.4s ease;}
+.ten-title.show-title{opacity:1;}
+.ten-title.secret-glow {
+  background: linear-gradient(135deg, #ff2a2a, #ff7f00, #ffd700, #00ff88, #00bfff, #8a2be2, #ff00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 21px;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.9)) drop-shadow(0 0 20px rgba(255,0,255,0.8));
+  animation: secglow 1.5s ease-in-out infinite alternate, rainbowtext 4s linear infinite;
+}
+.ten-title.ssr-glow {
+  color: #e5e4e2;
+  text-shadow: 0 0 8px rgba(229, 228, 226, 0.7);
+  animation: ssrglow 1.5s ease-in-out infinite alternate;
+}
+@keyframes secglow {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+@keyframes rainbowtext {
+  0% { filter: hue-rotate(0deg) drop-shadow(0 0 12px rgba(255,215,0,0.9)); }
+  100% { filter: hue-rotate(360deg) drop-shadow(0 0 12px rgba(255,0,255,0.9)); }
+}
+@keyframes ssrglow {
+  from { transform: scale(1); text-shadow: 0 0 6px rgba(229,228,226,0.6); }
+  to { transform: scale(1.02); text-shadow: 0 0 12px rgba(229,228,226,0.9); }
+}
+.ten-grid{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(2,auto);gap:9px;width:100%;}
+.tcard{aspect-ratio:3/4;border-radius:12px;position:relative;perspective:400px;}
+.tcard-in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform 0.3s var(--settle);}
+.tcard.flip .tcard-in{transform:rotateY(180deg);}
+
+/* レアルティごとのめくり速度（CSS側でも明示的に指定） */
+.tcard.r-SSR .tcard-in { transition: transform 0.5s var(--settle); }
+.tcard.r-Sec .tcard-in { transition: transform 1.0s var(--settle); }
+
+.tface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.tback{background:#fff;}
+.tback::before{content:'';width:64%;height:64%;border-radius:50%;background:var(--theme-blue);opacity:.9;}
+.tfront{transform:rotateY(180deg);background:#fff;font-size:26px;font-weight:900;border:2.5px solid;}
+.tfront.r-C{border-color:var(--copper);color:var(--copper);}
+.tfront.r-R{border-color:var(--r-color);color:var(--r-color);}
+.tfront.r-SR{border-color:var(--gold);color:#d4af37;box-shadow:0 0 14px rgba(255,215,0,.7);}
+.tfront.r-SSR{border-color:var(--platinum);color:#C5C5C5;background:#fff;box-shadow:0 0 16px rgba(229,228,226,1);}
+.tfront.r-Sec{
+  border-color: #ff00ea;
+  color: #1c1c1e;
+  background: linear-gradient(135deg, rgba(255,0,0,0.2), rgba(255,255,0,0.2), rgba(0,255,0,0.2), rgba(0,255,255,0.2), rgba(255,0,255,0.2));
+  box-shadow: 0 0 24px rgba(255,0,223,0.8), inset 0 0 15px rgba(255,215,0,0.6);
+  animation: rainbowtile 3s linear infinite;
+}
+.tnew{position:absolute;bottom:4px;left:4px;background:var(--copper);color:#fff;font-size:8px;font-weight:900;border-radius:6px;padding:1px 4px;z-index:2;transform:rotate(-8deg);}
+/* tile detail modal */
+.detail-box{background:#fff;border-radius:20px;padding:24px;width:260px;text-align:center;position:relative;}
+.detail-char{font-size:72px;font-weight:900;line-height:1.2;margin-bottom:8px;}
+.detail-rar{display:inline-block;padding:4px 14px;border-radius:999px;font-size:12px;font-weight:900;color:#fff;margin-bottom:12px;}
+.detail-cnt{font-size:14px;font-weight:700;color:#8a8a8e;margin-bottom:18px;}
+.ov-btn{
+  border:none;border-radius:999px;padding:14px 28px;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.25);transition:transform .15s var(--pop),box-shadow .15s;
+}
+.ov-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.25);}
+.ov-btn.primary{background:linear-gradient(135deg,var(--gold),var(--platinum));color:var(--ink);}
+/* odds modal */
+#odds{position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(28,28,30,.5);}
+#odds.show{display:flex;}
+.odds-sheet{background:#fff;width:100%;max-width:430px;max-height:82dvh;border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));overflow-y:auto;}
+.odds-sheet h2{font-size:17px;font-weight:900;margin-bottom:4px;}
+.odds-sheet p{font-size:11px;color:#8a8a8e;font-weight:700;margin-bottom:14px;}
+.odds-table{width:100%;border-collapse:collapse;font-size:12px;font-weight:700;}
+.odds-table th,.odds-table td{padding:8px 4px;border-bottom:1px solid var(--gray2);text-align:right;}
+.odds-table th{font-size:10px;color:#8a8a8e;font-weight:700;}
+.odds-table td:first-child,.odds-table th:first-child{text-align:left;}
+.odot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+.odds-close{margin-top:16px;width:100%;border:none;background:var(--ink);color:#fff;border-radius:999px;padding:13px;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;}
+/* confirm modal */
+#confirm{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(28,28,30,.5);padding:24px;}
+#confirm.show{display:flex;}
+.confirm-box{background:#fff;border-radius:18px;padding:22px 20px;width:100%;max-width:320px;text-align:center;}
+.confirm-box p{font-size:14px;font-weight:700;margin-bottom:18px;line-height:1.6;}
+.confirm-btns{display:flex;gap:10px;}
+.confirm-btns button{flex:1;border:none;border-radius:999px;padding:12px;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer;}
+.c-yes{background:var(--copper);color:#fff;}
+.c-no{background:var(--gray);color:#1c1c1e;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <h1><small>CHARACTER COLLECTION</small>16期 文字ガチャ</h1>
+      <div class="rainbow-bar"></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-num" id="hd-num">0<em>/296</em></div>
+      <div class="progress-bar"><div class="progress-fill" id="hd-fill"></div></div>
+    </div>
+  </header>
+  <main>
+    <section class="page active" id="page-gacha">
+      <div class="machine-zone">
+        <div class="machine" id="machine">
+          <div class="dome">
+            <div class="cap"></div><div class="cap"></div><div class="cap"></div><div class="cap"></div>
+            <div class="cap"></div><div class="cap"></div><div class="cap"></div><div class="cap"></div>
+          </div>
+          <div class="mbody">
+            <div class="knob"></div>
+            <div class="mslot"></div>
+          </div>
+        </div>
+        <button class="odds-link" id="odds-open">提供割合を見る</button>
+      </div>
+      <div class="limit-info" id="limit-info">ストック: <span id="limit-count">10</span>/10 (回復まで <span id="limit-timer">--:--</span>)</div>
+      <div class="pull-zone">
+        <button class="pull-btn" id="btn10"><span class="big">10連ガチャを引く</span><span class="small">10-PULL GACHA</span></button>
+      </div>
+    </section>
+    <section class="page" id="page-zukan">
+      <div class="complete-banner" id="comp-banner">🎊 図鑑コンプリート！おめでとう！ 🎊</div>
+      <div class="zk-summary">
+        <div>
+          <div class="zk-total" id="zk-total">0<em> / 296 種</em></div>
+        </div>
+        <div class="zk-pulls-right" id="total-pulls-text">累計ガチャ回数: 0回</div>
+      </div>
+      <div class="zk-bar"><div class="zk-fill" id="zk-fill"></div></div>
+      <div class="chips" id="chips"></div>
+      <div class="zk-grid" id="zk-grid"></div>
+      <div class="zk-settings">
+        <button class="danger" id="reset-btn">収集データをリセット</button>
+      </div>
+    </section>
+  </main>
+  <nav>
+    <button class="on" data-page="page-gacha"><span class="ico">🔴</span>ガチャ</button>
+    <button data-page="page-zukan"><span class="ico">📖</span>図鑑</button>
+  </nav>
+</div>
+<div id="overlay"><div class="ov-inner" id="ov-inner"></div></div>
+<div id="odds">
+  <div class="odds-sheet">
+    <h2>提供割合</h2>
+    <p>全296種。各文字の出現確率と人数です。</p>
+    <table class="odds-table">
+      <thead><tr><th>レアリティ</th><th>人数</th><th>種類数</th><th>合計</th><th>1種あたり</th></tr></thead>
+      <tbody id="odds-body"></tbody>
+    </table>
+    <button class="odds-close" id="odds-close">とじる</button>
+  </div>
+</div>
+<div id="confirm">
+  <div class="confirm-box">
+    <p>収集データをすべて削除します。<br>この操作は取り消せません。よろしいですか？</p>
+    <div class="confirm-btns">
+      <button class="c-no" id="cf-no">キャンセル</button>
+      <button class="c-yes" id="cf-yes">削除する</button>
+    </div>
+  </div>
+</div>
+<script>
+const RAW_DATA = [["々",0.00036913990402362494,"SSR"],["お",0.00036913990402362494,"SSR"],["カ",0.00036913990402362494,"SSR"],["く",0.00036913990402362494,"SSR"],["さ",0.00036913990402362494,"SSR"],["し",0.00036913990402362494,"SSR"],["た",0.00036913990402362494,"SSR"],["な",0.00036913990402362494,"SSR"],["ば",0.00036913990402362494,"SSR"],["ら",0.00036913990402362494,"SSR"],["ル",0.00036913990402362494,"SSR"],["愛",0.00036913990402362494,"SSR"],["茜",0.00036913990402362494,"SSR"],["旭",0.00036913990402362494,"SSR"],["芦",0.00036913990402362494,"SSR"],["為",0.00036913990402362494,"SSR"],["衣",0.00036913990402362494,"SSR"],["宇",0.00036913990402362494,"SSR"],["雨",0.00036913990402362494,"SSR"],["臼",0.00036913990402362494,"SSR"],["永",0.00036913990402362494,"SSR"],["英",0.00036913990402362494,"SSR"],["衛",0.00036913990402362494,"SSR"],["円",0.00036913990402362494,"SSR"],["遠",0.00036913990402362494,"SSR"],["央",0.00036913990402362494,"SSR"],["岡",0.00036913990402362494,"SSR"],["桶",0.00036913990402362494,"SSR"],["温",0.00036913990402362494,"SSR"],["下",0.00036913990402362494,"SSR"],["佳",0.00036913990402362494,"SSR"],["加",0.00036913990402362494,"SSR"],["河",0.00036913990402362494,"SSR"],["賀",0.00036913990402362494,"SSR"],["雅",0.00036913990402362494,"SSR"],["海",0.00036913990402362494,"SSR"],["馨",0.00036913990402362494,"SSR"],["角",0.00036913990402362494,"SSR"],["岸",0.00036913990402362494,"SSR"],["岩",0.00036913990402362494,"SSR"],["揮",0.00036913990402362494,"SSR"],["紀",0.00036913990402362494,"SSR"],["菊",0.00036913990402362494,"SSR"],["吉",0.00036913990402362494,"SSR"],["詰",0.00036913990402362494,"SSR"],["久",0.00036913990402362494,"SSR"],["響",0.00036913990402362494,"SSR"],["空",0.00036913990402362494,"SSR"],["景",0.00036913990402362494,"SSR"],["健",0.00036913990402362494,"SSR"],["犬",0.00036913990402362494,"SSR"],["五",0.00036913990402362494,"SSR"],["吾",0.00036913990402362494,"SSR"],["梧",0.00036913990402362494,"SSR"],["侯",0.00036913990402362494,"SSR"],["向",0.00036913990402362494,"SSR"],["広",0.00036913990402362494,"SSR"],["弘",0.00036913990402362494,"SSR"],["晃",0.00036913990402362494,"SSR"],["糠",0.00036913990402362494,"SSR"],["航",0.00036913990402362494,"SSR"],["高",0.00036913990402362494,"SSR"],["今",0.00036913990402362494,"SSR"],["哉",0.00036913990402362494,"SSR"],["作",0.00036913990402362494,"SSR"],["桜",0.00036913990402362494,"SSR"],["司",0.00036913990402362494,"SSR"],["市",0.00036913990402362494,"SSR"],["氏",6.152331733727083e-05,"Sec"],["詩",0.00036913990402362494,"SSR"],["寺",0.00036913990402362494,"SSR"],["慈",0.00036913990402362494,"SSR"],["識",0.00036913990402362494,"SSR"],["実",6.152331733727083e-05,"Sec"],["種",0.00036913990402362494,"SSR"],["周",0.00036913990402362494,"SSR"],["秋",0.00036913990402362494,"SSR"],["十",0.00036913990402362494,"SSR"],["俊",0.00036913990402362494,"SSR"],["渚",0.00036913990402362494,"SSR"],["勝",0.00036913990402362494,"SSR"],["昌",6.152331733727083e-05,"Sec"],["晶",0.00036913990402362494,"SSR"],["沼",0.00036913990402362494,"SSR"],["心",0.00036913990402362494,"SSR"],["訊",0.00036913990402362494,"SSR"],["翠",0.00036913990402362494,"SSR"],["世",0.00036913990402362494,"SSR"],["星",0.00036913990402362494,"SSR"],["晴",0.00036913990402362494,"SSR"],["生",0.00036913990402362494,"SSR"],["雪",0.00036913990402362494,"SSR"],["荘",0.00036913990402362494,"SSR"],["蔵",0.00036913990402362494,"SSR"],["則",0.00036913990402362494,"SSR"],["足",0.00036913990402362494,"SSR"],["汰",0.00036913990402362494,"SSR"],["拓",0.00036913990402362494,"SSR"],["沢",0.00036913990402362494,"SSR"],["達",0.00036913990402362494,"SSR"],["丹",0.00036913990402362494,"SSR"],["地",0.00036913990402362494,"SSR"],["智",0.00036913990402362494,"SSR"],["竹",0.00036913990402362494,"SSR"],["長",0.00036913990402362494,"SSR"],["直",0.00036913990402362494,"SSR"],["辻󠄀",0.00036913990402362494,"SSR"],["鶴",0.00036913990402362494,"SSR"],["都",0.00036913990402362494,"SSR"],["土",0.00036913990402362494,"SSR"],["島",0.00036913990402362494,"SSR"],["嶋",0.00036913990402362494,"SSR"],["陶",0.00036913990402362494,"SSR"],["篤",0.00036913990402362494,"SSR"],["那",0.00036913990402362494,"SSR"],["二",0.00036913990402362494,"SSR"],["波",0.00036913990402362494,"SSR"],["白",6.152331733727083e-05,"Sec"],["帆",0.00036913990402362494,"SSR"],["飯",0.00036913990402362494,"SSR"],["飛",0.00036913990402362494,"SSR"],["柊",0.00036913990402362494,"SSR"],["百",0.00036913990402362494,"SSR"],["浜",0.00036913990402362494,"SSR"],["斧",0.00036913990402362494,"SSR"],["風",0.00036913990402362494,"SSR"],["蕗",0.00036913990402362494,"SSR"],["服",0.00036913990402362494,"SSR"],["文",0.00036913990402362494,"SSR"],["米",0.00036913990402362494,"SSR"],["碧",0.00036913990402362494,"SSR"],["片",0.00036913990402362494,"SSR"],["辺",0.00036913990402362494,"SSR"],["保",0.00036913990402362494,"SSR"],["輔",6.152331733727083e-05,"Sec"],["峯",0.00036913990402362494,"SSR"],["朋",0.00036913990402362494,"SSR"],["萌",0.00036913990402362494,"SSR"],["磨",0.00036913990402362494,"SSR"],["末",0.00036913990402362494,"SSR"],["未",0.00036913990402362494,"SSR"],["巳",0.00036913990402362494,"SSR"],["門",0.00036913990402362494,"SSR"],["柳",0.00036913990402362494,"SSR"],["宥",0.00036913990402362494,"SSR"],["裕",6.152331733727083e-05,"Sec"],["夕",0.00036913990402362494,"SSR"],["来",0.00036913990402362494,"SSR"],["嵐",0.00036913990402362494,"SSR"],["離",0.00036913990402362494,"SSR"],["陸",0.00036913990402362494,"SSR"],["亮",0.00036913990402362494,"SSR"],["涼",0.00036913990402362494,"SSR"],["良",0.00036913990402362494,"SSR"],["琳",0.00036913990402362494,"SSR"],["瑠",0.00036913990402362494,"SSR"],["玲",0.00036913990402362494,"SSR"],["和",0.00036913990402362494,"SSR"],["凛",0.00036913990402362494,"SSR"],["晟",0.00036913990402362494,"SSR"],["暉",0.00036913990402362494,"SSR"],["曵",0.00036913990402362494,"SSR"],["條",0.00036913990402362494,"SSR"],["渕",0.00036913990402362494,"SSR"],["煌",0.00036913990402362494,"SSR"],["齋",0.00036913990402362494,"SSR"],["綺",0.00036913990402362494,"SSR"],["苺",0.00036913990402362494,"SSR"],["輕",0.00036913990402362494,"SSR"],["邊",0.00036913990402362494,"SSR"],["颯",0.00036913990402362494,"SSR"],["𠮷",0.00036913990402362494,"SSR"],["﨑",0.00036913990402362494,"SSR"],["柗",0.00036913990402362494,"SSR"],["橳",0.00036913990402362494,"SSR"],["瀨",0.00036913990402362494,"SSR"],["靏",0.00036913990402362494,"SSR"],["髙",0.00036913990402362494,"SSR"],["ひ",0.0014765596160944998,"SR"],["り",0.0014765596160944998,"SR"],["亜",0.0014765596160944998,"SR"],["安",0.0014765596160944998,"SR"],["伊",0.0014765596160944998,"SR"],["稲",0.0014765596160944998,"SR"],["羽",0.0014765596160944998,"SR"],["屋",0.0014765596160944998,"SR"],["華",0.0014765596160944998,"SR"],["垣",0.0014765596160944998,"SR"],["輝",0.0014765596160944998,"SR"],["宮",0.0014765596160944998,"SR"],["橋",0.0014765596160944998,"SR"],["栗",0.0014765596160944998,"SR"],["元",0.0014765596160944998,"SR"],["原",0.0014765596160944998,"SR"],["古",0.0014765596160944998,"SR"],["後",0.0014765596160944998,"SR"],["光",0.0014765596160944998,"SR"],["幸",0.0014765596160944998,"SR"],["沙",0.0014765596160944998,"SR"],["咲",0.0014765596160944998,"SR"],["三",0.0014765596160944998,"SR"],["七",0.0014765596160944998,"SR"],["紗",0.0014765596160944998,"SR"],["新",0.0014765596160944998,"SR"],["人",0.0014765596160944998,"SR"],["仁",0.0014765596160944998,"SR"],["成",0.0014765596160944998,"SR"],["清",0.0014765596160944998,"SR"],["青",0.0014765596160944998,"SR"],["千",0.0014765596160944998,"SR"],["泉",0.0014765596160944998,"SR"],["奏",0.0014765596160944998,"SR"],["多",0.0014765596160944998,"SR"],["知",0.0014765596160944998,"SR"],["天",0.0014765596160944998,"SR"],["斗",0.0014765596160944998,"SR"],["東",0.0014765596160944998,"SR"],["瞳",0.0014765596160944998,"SR"],["日",0.0014765596160944998,"SR"],["馬",0.0014765596160944998,"SR"],["妃",0.0014765596160944998,"SR"],["富",0.0014765596160944998,"SR"],["楓",0.0014765596160944998,"SR"],["平",0.0014765596160944998,"SR"],["穂",0.0014765596160944998,"SR"],["夢",0.0014765596160944998,"SR"],["也",0.0014765596160944998,"SR"],["矢",0.0014765596160944998,"SR"],["有",0.0014765596160944998,"SR"],["祐",0.0014765596160944998,"SR"],["雄",0.0014765596160944998,"SR"],["葉",0.0014765596160944998,"SR"],["李",0.0014765596160944998,"SR"],["琉",0.0014765596160944998,"SR"],["龍",0.0014765596160944998,"SR"],["怜",0.0014765596160944998,"SR"],["郎",0.0014765596160944998,"SR"],["櫻",0.0014765596160944998,"SR"],["洸",0.0014765596160944998,"SR"],["澤",0.0014765596160944998,"SR"],["邉",0.0014765596160944998,"SR"],["凜",0.0014765596160944998,"SR"],["口",0.0014765596160944998,"SR"],["志",0.0014765596160944998,"SR"],["一",0.0033222591362126247,"R"],["音",0.0033222591362126247,"R"],["夏",0.0033222591362126247,"R"],["介",0.0033222591362126247,"R"],["結",0.0033222591362126247,"R"],["佐",0.0033222591362126247,"R"],["上",0.0033222591362126247,"R"],["神",0.0033222591362126247,"R"],["水",0.0033222591362126247,"R"],["池",0.0033222591362126247,"R"],["南",0.0033222591362126247,"R"],["美",0.0033222591362126247,"R"],["福",0.0033222591362126247,"R"],["明",0.0033222591362126247,"R"],["友",0.0033222591362126247,"R"],["里",0.0033222591362126247,"R"],["立",0.0033222591362126247,"R"],["諒",0.0033222591362126247,"R"],["林",0.0033222591362126247,"R"],["鈴",0.0033222591362126247,"R"],["朗",0.0033222591362126247,"R"],["莉",0.0033222591362126247,"R"],["武",0.0033222591362126247,"R"],["彩",0.005906238464377999,"R"],["真",0.005906238464377999,"R"],["前",0.005906238464377999,"R"],["谷",0.005906238464377999,"R"],["津",0.005906238464377999,"R"],["奈",0.005906238464377999,"R"],["之",0.005906238464377999,"R"],["部",0.005906238464377999,"R"],["優",0.005906238464377999,"R"],["陽",0.005906238464377999,"R"],["渡",0.005906238464377999,"R"],["村",0.009228497600590625,"R"],["梨",0.009228497600590625,"R"],["井",0.0033222591362126247,"C"],["菜",0.0033222591362126247,"C"],["子",0.0033222591362126247,"C"],["松",0.0033222591362126247,"C"],["木",0.0033222591362126247,"C"],["悠",0.0033222591362126247,"C"],["石",0.0033222591362126247,"C"],["大",0.0033222591362126247,"C"],["花",0.01808785529715762,"C"],["希",0.01808785529715762,"C"],["香",0.01808785529715762,"C"],["翔",0.01808785529715762,"C"],["小",0.023624953857511996,"C"],["中",0.023624953857511996,"C"],["藤",0.023624953857511996,"C"],["乃",0.023624953857511996,"C"],["本",0.023624953857511996,"C"],["山",0.023624953857511996,"C"],["太",0.029900332225913623,"C"],["川",0.04466592838685862,"C"],["野",0.053156146179401995,"C"],["田",0.2307124400147656,"C"]];
+</script>
+<script>
+const RAR = {
+  C:   {label:'C',   name:'C',   color:'#cd7f32', countStr:'6~33'},
+  R:   {label:'R',   name:'R',   color:'#999999', countStr:'3~5'},
+  SR:  {label:'SR',  name:'SR',  color:'#ffd700', countStr:'2'},
+  SSR: {label:'SSR', name:'SSR', color:'#C5C5C5', countStr:'1'},
+  Sec: {label:'Sec', name:'Sec', color:'linear-gradient(135deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#8b00ff)', countStr:'1'}
+};
+let userGot = JSON.parse(localStorage.getItem('gacha_got_16')) || {};
+let activeChip = 'all';
+const MAX_LIMIT = 10;
+const RECOVERY_MS = 30000;
+let gachaState = JSON.parse(localStorage.getItem('gacha_state_16')) || { count: 10, lastTime: Date.now(), totalPulls: 0 };
+if(gachaState.totalPulls === undefined) {
+  gachaState.totalPulls = 0;
+}
+let isGachaRunning = false;
+let currentAnimationTimeouts = [];
+
+function updateLimitState() {
+  const now = Date.now();
+  if (gachaState.count >= MAX_LIMIT) {
+    gachaState.lastTime = now;
+    saveLimitState();
+    return;
+  }
+  const elapsed = now - gachaState.lastTime;
+  if (elapsed >= RECOVERY_MS) {
+    const recovered = Math.floor(elapsed / RECOVERY_MS);
+    gachaState.count = Math.min(MAX_LIMIT, gachaState.count + recovered);
+    if (gachaState.count >= MAX_LIMIT) {
+      gachaState.lastTime = now;
+    } else {
+      gachaState.lastTime += recovered * RECOVERY_MS;
+    }
+    saveLimitState();
+  }
+}
+function saveLimitState() {
+  localStorage.setItem('gacha_state_16', JSON.stringify(gachaState));
+}
+function getZukanData() {
+  return RAW_DATA.filter(d => d[2] !== 'Sec' || userGot[d[0]]);
+}
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('on');
+    document.getElementById(btn.dataset.page).classList.add('active');
+    if(btn.dataset.page === 'page-zukan') renderZukan();
+  });
+});
+
+const rarityGroups = {};
+const rarityTotals = {};
+['SSR', 'SR', 'R', 'C', 'Sec'].forEach(r => {
+  rarityGroups[r] = RAW_DATA.filter(d => d[2] === r);
+  rarityTotals[r] = rarityGroups[r].reduce((sum, d) => sum + d[1], 0);
+});
+const globalTotalWeight = Object.values(rarityTotals).reduce((sum, w) => sum + w, 0);
+
+function drawSingleGacha() {
+  const rVal = Math.random() * globalTotalWeight;
+  let currentW = 0;
+  let chosenRarity = 'C';
+  for (const r of ['SSR', 'SR', 'R', 'C', 'Sec']) {
+    currentW += rarityTotals[r];
+    if (rVal <= currentW) {
+      chosenRarity = r;
+      break;
+    }
+  }
+
+  const group = rarityGroups[chosenRarity];
+  if (chosenRarity === 'SSR') {
+    const ssrRand = Math.random() * rarityTotals['SSR'];
+    let ssrAcc = 0;
+    for (const item of group) {
+      ssrAcc += item[1];
+      if (ssrRand <= ssrAcc) return item;
+    }
+    return group[0];
+  } else {
+    const groupTotal = rarityTotals[chosenRarity];
+    const itemRand = Math.random() * groupTotal;
+    let itemAcc = 0;
+    for (const item of group) {
+      itemAcc += item[1];
+      if (itemRand <= itemAcc) return item;
+    }
+    return group[0];
+  }
+}
+
+function drawGacha10() {
+  if (isGachaRunning) return;
+  updateLimitState();
+  if (gachaState.count < 1) {
+    alert('回数が不足しています。回復をお待ちください！');
+    return;
+  }
+  
+  isGachaRunning = true;
+  const btn10 = document.getElementById('btn10');
+  btn10.disabled = true;
+  if (gachaState.count >= MAX_LIMIT) {
+    gachaState.lastTime = Date.now();
+  }
+  gachaState.count -= 1;
+  gachaState.totalPulls += 1;
+  saveLimitState();
+  updateLimitUI();
+  updateTotalPullsUI();
+  const machine = document.getElementById('machine');
+  machine.classList.add('shaking');
+  setTimeout(() => {
+    machine.classList.remove('shaking');
+    const results = [];
+    for(let i=0; i<10; i++){
+      results.push(drawSingleGacha());
+    }
+    showTenResult(results);
+  }, 500);
+}
+
+function showTenResult(results) {
+  const overlay = document.getElementById('overlay');
+  const inner = document.getElementById('ov-inner');
+  
+  const hasSec = results.some(item => item[2] === 'Sec');
+  const hasSSR = results.some(item => item[2] === 'SSR');
+  
+  let titleClass = '';
+  let titleText = '✨ 10連ガチャ結果 ✨';
+  if(hasSec) {
+    titleClass = 'secret-glow';
+    titleText = '🌟 SECRET GET!! 🌟';
+  } else if(hasSSR) {
+    titleClass = 'ssr-glow';
+    titleText = '💫 SSR GET! 💫';
+  }
+  
+  let html = `
+    <button class="skip-btn" id="skip-btn">スキップ</button>
+    <div class="ten-title ${titleClass}" id="ten-title">${titleText}</div>
+    <div class="ten-grid">
+  `;
+
+  results.forEach((item, idx) => {
+    const isNew = !userGot[item[0]];
+    if(!userGot[item[0]]) userGot[item[0]] = 0;
+    userGot[item[0]]++;
+    
+    // クラス(r-SSR, r-Sec)でCSS側から自動的に速度が適用されます
+    html += `
+      <div class="tcard r-${item[2]}" id="tcard-${idx}">
+        <div class="tcard-in">
+          <div class="tface tback"></div>
+          <div class="tface tfront r-${item[2]}">
+            ${item[0]}
+            ${isNew ? '<div class="tnew">NEW</div>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div><button class="ov-btn primary" id="ten-close" style="margin-top:20px; display:none;">とじる</button>`;
+  
+  localStorage.setItem('gacha_got_16', JSON.stringify(userGot));
+  updateHeaderProgress();
+  inner.innerHTML = html;
+  overlay.classList.add('show');
+
+  currentAnimationTimeouts = [];
+
+  results.forEach((item, idx) => {
+    const t = setTimeout(() => {
+      const cardEl = document.getElementById(`tcard-${idx}`);
+      if (cardEl) cardEl.classList.add('flip');
+    }, 200 + idx * 250);
+    currentAnimationTimeouts.push(t);
+  });
+
+  const maxDelay = 200 + (results.length - 1) * 250 + 1200;
+  const finishTimeout = setTimeout(() => {
+    showFinishState();
+  }, maxDelay);
+  currentAnimationTimeouts.push(finishTimeout);
+
+  document.getElementById('skip-btn').onclick = () => {
+    currentAnimationTimeouts.forEach(t => clearTimeout(t));
+    currentAnimationTimeouts = [];
+
+    for(let i=0; i<10; i++){
+      const cardEl = document.getElementById(`tcard-${i}`);
+      if(cardEl) cardEl.classList.add('flip');
+    }
+    showFinishState();
+  };
+
+  document.getElementById('ten-close').onclick = () => {
+    overlay.classList.remove('show');
+    updateHeaderProgress();
+    isGachaRunning = false;
+    updateLimitUI();
+  };
+}
+
+function showFinishState() {
+  const titleEl = document.getElementById('ten-title');
+  const skipBtn = document.getElementById('skip-btn');
+  const closeBtn = document.getElementById('ten-close');
+  if (titleEl) titleEl.classList.add('show-title');
+  if (skipBtn) skipBtn.style.display = 'none';
+  if (closeBtn) closeBtn.style.display = 'block';
+}
+
+function updateHeaderProgress() {
+  const zData = getZukanData();
+  const total = zData.length;
+  const gotCount = Object.keys(userGot).length;
+  document.getElementById('hd-num').innerHTML = `${gotCount}<em>/${total}</em>`;
+  document.getElementById('hd-fill').style.width = `${Math.min(100, (gotCount/total)*100)}%`;
+}
+updateHeaderProgress();
+function updateTotalPullsUI() {
+  const pullsText = document.getElementById('total-pulls-text');
+  if(pullsText) {
+    pullsText.textContent = `累計ガチャ回数: ${gachaState.totalPulls || 0}回`;
+  }
+}
+updateTotalPullsUI();
+function updateLimitUI() {
+  const btn10 = document.getElementById('btn10');
+  if (isGachaRunning) {
+    btn10.disabled = true;
+    return;
+  }
+  updateLimitState();
+  const countEl = document.getElementById('limit-count');
+  const timerEl = document.getElementById('limit-timer');
+  countEl.textContent = gachaState.count;
+  
+  if (gachaState.count >= MAX_LIMIT) {
+    timerEl.textContent = 'MAX';
+  } else {
+    const now = Date.now();
+    const elapsed = now - gachaState.lastTime;
+    const remain = Math.max(0, RECOVERY_MS - elapsed);
+    const sec = Math.ceil(remain / 1000);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    timerEl.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+  if (gachaState.count < 1) {
+    btn10.disabled = true;
+  } else {
+    btn10.disabled = false;
+  }
+}
+setInterval(updateLimitUI, 1000);
+updateLimitUI();
+document.getElementById('btn10').addEventListener('click', drawGacha10);
+function getRarityCounts(rarityKey) {
+  if (rarityKey === 'all') {
+    const zData = getZukanData();
+    const totalNum = zData.length;
+    const gotNum = Object.keys(userGot).filter(char => {
+      const item = RAW_DATA.find(d => d[0] === char);
+      return item && item[2] !== 'Sec';
+    }).length;
+    return { got: gotNum, total: totalNum };
+  } else if (rarityKey === 'Sec') {
+    const secItems = RAW_DATA.filter(d => d[2] === 'Sec');
+    const totalNum = secItems.length;
+    const gotNum = secItems.filter(d => userGot[d[0]] > 0).length;
+    return { got: gotNum, total: totalNum };
+  } else {
+    const targetItems = RAW_DATA.filter(d => d[2] === rarityKey);
+    const totalNum = targetItems.length;
+    const gotNum = targetItems.filter(d => userGot[d[0]] > 0).length;
+    return { got: gotNum, total: totalNum };
+  }
+}
+function renderZukan() {
+  const zData = getZukanData();
+  const total = zData.length;
+  const gotCount = Object.keys(userGot).length;
+  document.getElementById('zk-total').innerHTML = `${gotCount}<em> / ${total} 種</em>`;
+  document.getElementById('zk-fill').style.width = `${Math.min(100, (gotCount/total)*100)}%`;
+  updateTotalPullsUI();
+  const banner = document.getElementById('comp-banner');
+  if(gotCount >= RAW_DATA.length) banner.classList.add('show');
+  else banner.classList.remove('show');
+  
+  const chipsEl = document.getElementById('chips');
+  const hasSecGot = RAW_DATA.some(d => d[2] === 'Sec' && userGot[d[0]]);
+  const rarities = ['all', 'C', 'R', 'SR', 'SSR'];
+  if(hasSecGot) rarities.push('Sec');
+  
+  chipsEl.innerHTML = rarities.map(r => {
+    const rc = getRarityCounts(r);
+    const labelText = r === 'all' ? 'すべて' : r;
+    return `
+      <button class="chip ${activeChip === r ? 'on' : ''}" data-r="${r}">
+        ${labelText} (${rc.got}/${rc.total})
+      </button>
+    `;
+  }).join('');
+  
+  chipsEl.querySelectorAll('.chip').forEach(c => {
+    c.onclick = () => {
+      activeChip = c.dataset.r;
+      renderZukanGrid();
+      renderZukan();
+    };
+  });
+  renderZukanGrid();
+}
+function renderZukanGrid() {
+  const gridEl = document.getElementById('zk-grid');
+  const zData = getZukanData();
+  const filtered = activeChip === 'all' ? zData : zData.filter(d => d[2] === activeChip);
+  gridEl.innerHTML = filtered.map(item => {
+    const char = item[0];
+    const rar = item[2];
+    const cnt = userGot[char] || 0;
+    const got = cnt > 0;
+    return `
+      <div class="tile ${got ? 'got r-'+rar : 'miss'}" ${got ? `onclick="showDetail('${char}', '${rar}',${cnt})"` : ''}>
+        ${got ? char : '？'}
+        ${got && cnt > 1 ? `<div class="cnt">${cnt}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+function showDetail(char, rar, cnt) {
+  const overlay = document.getElementById('overlay');
+  const inner = document.getElementById('ov-inner');
+  const info = RAR[rar];
+  inner.innerHTML = `
+    <div class="detail-box">
+      <div class="detail-char">${char}</div>
+      <div class="detail-rar" style="background:${info.color}; ${rar==='SSR'||rar==='Sec'?'color:#000;':'color:#fff;'}">${info.name}</div>
+      <div class="detail-cnt">所持枚数: <b>${cnt}</b> 枚</div>
+      <button class="ov-btn primary" id="detail-close">とじる</button>
+    </div>
+  `;
+  overlay.classList.add('show');
+  document.getElementById('detail-close').onclick = () => {
+    overlay.classList.remove('show');
+  };
+}
+document.getElementById('reset-btn').onclick = () => {
+  document.getElementById('confirm').classList.add('show');
+};
+document.getElementById('cf-no').onclick = () => {
+  document.getElementById('confirm').classList.remove('show');
+};
+document.getElementById('cf-yes').onclick = () => {
+  localStorage.removeItem('gacha_got_16');
+  localStorage.removeItem('gacha_state_16');
+  userGot = {};
+  gachaState = { count: 10, lastTime: Date.now(), totalPulls: 0 };
+  activeChip = 'all';
+  document.getElementById('confirm').classList.remove('show');
+  updateHeaderProgress();
+  updateTotalPullsUI();
+  updateLimitUI();
+  renderZukan();
+};
+document.getElementById('odds-open').onclick = () => {
+  const tbody = document.getElementById('odds-body');
+  const stats = {};
+  RAW_DATA.filter(d => d[2] !== 'Sec').forEach(d => {
+    if(!stats[d[2]]) stats[d[2]] = { count: 0, sum: 0 };
+    stats[d[2]].count++;
+    stats[d[2]].sum += d[1];
+  });
+  const order = ['SSR', 'SR', 'R', 'C'];
+  tbody.innerHTML = order.map(r => {
+    const info = RAR[r];
+    const s = stats[r];
+    if(!s) return '';
+    let perOneStr = '';
+    if (r === 'R') {
+      perOneStr = '0.33~0.92%';
+    } else if (r === 'C') {
+      perOneStr = '1.33~23.07%';
+    } else {
+      const perOne = (s.sum / s.count) * 100;
+      perOneStr = perOne < 0.01 ? perOne.toFixed(4) + '%' : perOne.toFixed(2) + '%';
+    }
+    return `
+      <tr>
+        <td><span class="odot" style="background:${info.color}"></span>${info.name}</td>
+        <td>${info.countStr}</td>
+        <td>${s.count}種</td>
+        <td>${(s.sum*100).toFixed(2)}%</td>
+        <td>${perOneStr}</td>
+      </tr>
+    `;
+  }).join('');
+  document.getElementById('odds').classList.add('show');
+};
+document.getElementById('odds-close').onclick = () => {
+  document.getElementById('odds').classList.remove('show');
+};
+</script>
+</body>
+</html>
